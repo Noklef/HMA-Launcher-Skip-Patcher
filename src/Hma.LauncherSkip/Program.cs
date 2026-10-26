@@ -5,7 +5,7 @@ using System.Security;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
 
-namespace Hma.LauncherBypass
+namespace Hma.LauncherSkip
 {
     internal static class Program
     {
@@ -123,7 +123,7 @@ namespace Hma.LauncherBypass
         private static void PrintHeader()
         {
             string version = System.Diagnostics.FileVersionInfo.GetVersionInfo(typeof(Program).Assembly.Location).ProductVersion.Split('+')[0];
-            WriteColor("Hitman: Absolution launcher bypass | V" + version + " | By Noklef", ConsoleColor.Cyan);
+            WriteColor("Hitman: Absolution launcher skip | V" + version + " | By Noklef", ConsoleColor.Cyan);
             Console.WriteLine();
         }
 

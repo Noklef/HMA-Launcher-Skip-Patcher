@@ -21,9 +21,9 @@ jobs:
       - name: Build
         run: |
           $version = $env:GITHUB_REF_NAME.Substring(1)
-          dotnet build src/Hma.LauncherBypass/Hma.LauncherBypass.csproj --configuration Release "-p:Version=$version" --output artifacts
+          dotnet build src/Hma.LauncherSkip/Hma.LauncherSkip.csproj --configuration Release "-p:Version=$version" --output artifacts
 
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$env:GITHUB_REF_NAME" "artifacts/HMALauncherBypass-$env:GITHUB_REF_NAME.exe" --verify-tag --generate-notes
+        run: gh release create "$env:GITHUB_REF_NAME" "artifacts/HMALauncherSkip-$env:GITHUB_REF_NAME.exe" --verify-tag --generate-notes
