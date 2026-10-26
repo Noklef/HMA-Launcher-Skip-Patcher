@@ -1,4 +1,4 @@
-# Hitman: Absolution launcher bypass
+# Hitman: Absolution launcher bypass patcher
 
 This is a .exe patcher for Hitman Absolution that allows you to skip the launcher... Why this wasn't a feature already is beyond me.
 
@@ -8,9 +8,8 @@ There's an unused property in the .exe called `EnableSplashScreen`, which is set
 
 ## How to use it
 0. Close the game if it's running
-1. Download the latest version from the release, and extract the .zip
-2. Run `HMALauncherBypass-v1.0.exe`
-3. Follow the prompts (it will try to auto-detect the .exe on a steam copy)
+1. Download the latest .exe version from the release
+2. Run it, and follow the prompts (it will try to auto-detect the .exe on a steam copy)
 4. Launch the game when finished
 
 ## "But i don't trust a random .exe / random person on the internet"
