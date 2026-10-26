@@ -1,39 +1,28 @@
 using System;
 using System.IO;
-using System.Security.Cryptography;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Hma.LauncherBypass
 {
     internal static class LauncherPatch
     {
-        private const int SettingOffset = 0xA7AE3A;
-        private const string SupportedHash = "7655c1db63607612e358d2142241b96fc2c92db5d7f5fa7b290a43ec7764d9d6";
-
-        private static string Hash(byte[] data)
+        private static int FindSetting(byte[] data)
         {
-            using (var sha = SHA256.Create())
-                return BitConverter.ToString(sha.ComputeHash(data)).Replace("-", "").ToLowerInvariant();
-        }
-
-        private static bool IsPatched(byte[] data)
-        {
-            if (data.Length <= SettingOffset || (data[SettingOffset] != '0' && data[SettingOffset] != '1'))
-                throw new InvalidDataException("Unsupported executable. No changes were made.");
-
-            byte[] normalized = (byte[])data.Clone();
-            normalized[SettingOffset] = (byte)'1';
-            string normalizedHash = Hash(normalized);
-            if (normalizedHash != SupportedHash)
-                throw new InvalidDataException("Unrecognized executable. No changes were made." + Environment.NewLine +
-                    "Expected SHA-256 (launcher enabled): " + SupportedHash + Environment.NewLine +
-                    "Found SHA-256 (launcher enabled):    " + normalizedHash);
-
-            return data[SettingOffset] == '0';
+            MatchCollection matches = Regex.Matches(Encoding.ASCII.GetString(data),
+                @"(?<=\nEnableSplashScreen=)[01](?=\r?\nBOOT_MOVIE=)");
+            if (matches.Count != 1)
+                throw new InvalidDataException(matches.Count == 0
+                    ? "The launcher setting was not found in the expected configuration. No changes were made."
+                    : "Multiple launcher settings were found. No changes were made.");
+            return matches[0].Index;
         }
 
         internal static bool IsPatched(string path)
         {
-            return IsPatched(File.ReadAllBytes(ExecutablePath(path)));
+            byte[] data = File.ReadAllBytes(ExecutablePath(path));
+            return data[FindSetting(data)] == '0';
         }
 
         private static string ExecutablePath(string path)
@@ -46,22 +35,28 @@ namespace Hma.LauncherBypass
         {
             path = ExecutablePath(path);
             byte[] data = File.ReadAllBytes(path);
-            if (IsPatched(data) == skip) return skip ? "Executable already patched." : "Executable already unpatched.";
+            int setting = FindSetting(data);
+            if ((data[setting] == '0') == skip) return skip ? "Executable already patched." : "Executable already unpatched.";
 
             string backup = path + ".bak";
+            byte[] original = null;
             if (!skip || File.Exists(backup))
             {
-                if (Hash(File.ReadAllBytes(backup)) != SupportedHash)
-                    throw new InvalidDataException("The backup is not the supported original executable. No changes were made: " + backup);
+                original = File.ReadAllBytes(backup);
+                if (original[FindSetting(original)] != '1')
+                    throw new InvalidDataException("The backup does not have its launcher enabled. No changes were made: " + backup);
             }
 
             if (!skip)
             {
+                data[setting] = (byte)'1';
+                if (!data.SequenceEqual(original))
+                    throw new InvalidDataException("The backup does not match this executable apart from the launcher setting. No changes were made: " + backup);
                 File.Replace(backup, path, null);
                 return "HMA.exe restored and the old backup has been deleted.";
             }
 
-            data[SettingOffset] = (byte)'0';
+            data[setting] = (byte)'0';
             string temporary = path + ".launcher-" + Guid.NewGuid().ToString("N") + ".tmp";
             try
             {
