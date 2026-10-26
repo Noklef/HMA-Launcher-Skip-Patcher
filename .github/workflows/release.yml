@@ -11,9 +11,6 @@ permissions:
 jobs:
   release:
     runs-on: windows-2025
-    defaults:
-      run:
-        shell: pwsh
     steps:
       - uses: actions/checkout@v7
 
@@ -21,26 +18,12 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Build and package
+      - name: Build
         run: |
           $version = $env:GITHUB_REF_NAME.Substring(1)
-          if ($version -notmatch '^\d+\.\d+(?:\.\d+)?(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?$') {
-            throw 'Use a version tag such as v1.1, v1.1.0, or v1.1.0-beta.1.'
-          }
-
-          dotnet build src/Hma.LauncherBypass/Hma.LauncherBypass.csproj --configuration Release "-p:Version=$version" -p:DebugType=None -p:DebugSymbols=false --output artifacts
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-          $asset = "HMALauncherBypass-$env:GITHUB_REF_NAME.zip"
-          Compress-Archive -Path artifacts/* -DestinationPath $asset
-          "RELEASE_VERSION=$version" >> $env:GITHUB_ENV
-          "RELEASE_ASSET=$asset" >> $env:GITHUB_ENV
+          dotnet build src/Hma.LauncherBypass/Hma.LauncherBypass.csproj --configuration Release "-p:Version=$version" --output artifacts
 
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          $releaseOptions = @('--verify-tag', '--generate-notes', '--title', $env:GITHUB_REF_NAME)
-          if ($env:RELEASE_VERSION.Contains('-')) { $releaseOptions += '--prerelease' }
-          gh release create "$env:GITHUB_REF_NAME" "$env:RELEASE_ASSET" @releaseOptions
+        run: gh release create "$env:GITHUB_REF_NAME" "artifacts/HMALauncherBypass-$env:GITHUB_REF_NAME.exe" "artifacts/HMALauncherBypass-$env:GITHUB_REF_NAME.exe.config" --verify-tag --generate-notes
