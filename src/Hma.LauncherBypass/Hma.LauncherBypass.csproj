@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <Version>1.0</Version>
+    <AssemblyName>HMALauncherBypass-v$(Version)</AssemblyName>
+    <RootNamespace>Hma.LauncherBypass</RootNamespace>
+  </PropertyGroup>
+</Project>
